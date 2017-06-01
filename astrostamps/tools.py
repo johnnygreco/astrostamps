@@ -3,12 +3,15 @@ from urllib.request import urlopen
 from io import BytesIO
 import requests
 from getpass import getpass
+import xml.etree.ElementTree as ET
+from PIL import Image
 import numpy as np
 from matplotlib import image
 import astropy.io.fits as fits
+from astropy.wcs import WCS
 from astropy.visualization import make_lupton_rgb
 
-__all__ = ["project_dir", "fetch_sdss_cutout", "HSCSession"]
+__all__ = ["project_dir", "fetch_sdss_cutout", "HSCSession", "fetch_galex_cutout"]
 
 project_dir = os.path.dirname(os.path.dirname(__file__))
 
@@ -117,3 +120,47 @@ class HSCSession(object):
         rgb = make_lupton_rgb(images[:, :, 0], images[:, :, 1],
                               images[:, :, 2], stretch=stretch, Q=Q)
         return rgb
+
+
+def fetch_galex_cutout(ra, dec, size=50, survey='AIS'):
+    """
+    Fetch Galex NUV+FUV cutout image.
+
+    Parameters
+    ----------
+    ra, dec : float
+        Center of cutout in degress
+    size : float
+        Size of cutout in arcsec
+    survey : str
+        Galex survey (AIS, MIS, DIS, NGS, GII)
+
+    Returns
+    -------
+    cutout : PIL.Image.Image
+        The cutout image
+
+    Notes
+    -----
+    - adapted from script by https://github.com/wschoenell
+    (https://gist.github.com/wschoenell/ea27e28f271da9b472e51e890b9477ba)
+    """
+    pixscale = 1.5 # arcsec/pixel
+    url = 'http://galex.stsci.edu/gxWS/SIAP/gxSIAP.aspx?POS={},{}&SIZE=0'.format(ra, dec)
+    req = requests.request('GET', url)
+    data = ET.XML(req.content)
+    VOTab = '{http://www.ivoa.net/xml/VOTable/v1.1}'
+    resource = data.find(VOTab+'RESOURCE')
+    table = resource.find(VOTab+'TABLE').find(VOTab+'DATA').find(VOTab+'TABLEDATA')
+    survey_idx = np.argwhere(np.array([t[0].text for t in table])==survey)
+    if len(survey_idx)==0:
+        print('**** No {} image found at {} {} ****'.format(survey, ra, dec))
+        return None
+    fits_url = table[survey_idx[0][0]][20].text
+    wcs = WCS(fits.getheader(fits_url))
+    x, y = wcs.wcs_world2pix(ra, dec, 0)
+    jpg_url = table[survey_idx[-1][0]][20].text
+    crop_pix = np.floor(size/pixscale/2.0)
+    crop = (x - crop_pix, y - crop_pix, x + crop_pix, y + crop_pix)  
+    jpg_img = Image.open(BytesIO(requests.request('GET', jpg_url).content))    
+    return jpg_img.transpose(Image.FLIP_TOP_BOTTOM).crop(crop)      
