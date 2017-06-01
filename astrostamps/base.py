@@ -5,7 +5,7 @@ import requests
 
 
 @six.add_metaclass(abc.ABCMeta)
-class StampFactory(object):
+class Survey(object):
 
     """A base class for collecting stamps"""
     baseurl = None
@@ -29,8 +29,22 @@ class StampFactory(object):
         return NotImplementedError("")
 
 
-class SDSS(StampFactory):
+class SDSS(Survey):
     baseurl = "http://skyserver.sdss.org/dr13/SkyServerWS/ImgCutout/getjpeg?"
     def fetch(self, ra, dec, size):
         params = dict(ra=ra, dec=dec, width=size, height=size)
         # return image
+
+
+class StampFactory(object):
+    """ convenience class for searching everything """
+    _surveys = {
+        'SDSS' : SDSS,
+        #other surveys here
+        }
+
+    def getstamps(self, ra, dec, size):
+        out = {}
+        for name, survey in StampFactory._surveys:
+            out[name] = survey.fetch(ra, dec, size)
+
