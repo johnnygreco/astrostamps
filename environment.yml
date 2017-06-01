@@ -1,0 +1,8 @@
+name: astrostamps
+
+dependencies:
+  - python=3
+  - astropy
+  - numpy
+  - matplotlib
+  - scipy
