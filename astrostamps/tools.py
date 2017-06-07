@@ -1,5 +1,8 @@
 import os
-from urllib.request import urlopen
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib import urlopen
 from io import BytesIO
 import requests
 from getpass import getpass
