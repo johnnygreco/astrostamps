@@ -159,7 +159,7 @@ def fetch_galex_cutout(ra, dec, size=50, survey='AIS'):
     if len(survey_idx)==0:
         print('**** No {} image found at {} {} ****'.format(survey, ra, dec))
         return None
-    fits_url = table[survey_idx[0][0]][20].text
+    fits_url = table[survey_idx[-2][0]][20].text
     wcs = WCS(fits.getheader(fits_url))
     x, y = wcs.wcs_world2pix(ra, dec, 0)
     jpg_url = table[survey_idx[-1][0]][20].text
