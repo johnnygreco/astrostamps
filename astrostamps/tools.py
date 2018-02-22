@@ -82,7 +82,7 @@ class HSCSession(object):
         band = band.upper()
         images = []
         for oneband in band:
-            url = (os.path.join(self.base_url, 'das_quarry/')+"/cgi-bin/quarryImage?"
+            url = (os.path.join(self.base_url, 'das_quarry/')+"dr1/cgi-bin/quarryImage?"
                    "ra=%.6f&dec=%.6f&sw=%.6fasec&sh=%.6fasec"
                    "&type=coadd&image=on&filter=HSC-%s&tract=&rerun=" % (
                        ra, dec, width/2.0, height/2.0, oneband))
