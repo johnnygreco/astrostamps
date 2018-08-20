@@ -130,7 +130,7 @@ class HSCSession(object):
         Fetch psf at give ra & dec
         """
 
-        num = {'5': 's17a_wide', '6': 's18a_wide'}[rerun]
+        num = {'s17a_wide':'5', 's18a_wide':'6'}[rerun]
         url = self.base_url+'psf/'+num+'/cgi/getpsf?ra={:.6f}&'
         url += 'dec={:.6f}&filter={}&rerun={}&tract='
         url += 'auto&patch=auto&type=coadd'
