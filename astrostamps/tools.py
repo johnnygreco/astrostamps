@@ -82,10 +82,11 @@ class HSCSession(object):
         band = band.upper()
         images = []
         for oneband in band:
-            url = (os.path.join(self.base_url, 'das_quarry/')+"dr%.0f/cgi-bin/quarryImage?"
+            url = (os.path.join(self.base_url, 'das_quarry/')+"dr%s/cgi-bin/quarryImage?"
                    "ra=%.6f&dec=%.6f&sw=%.6fasec&sh=%.6fasec"
                    "&type=coadd&image=on&mask=on&variance=on&filter=HSC-%s&tract=&rerun=" % (
                        dr, ra, dec, width/2.0, height/2.0, oneband))
+
             resp = self.session.get(url)
             if resp.ok:
                 images.append(fits.open(BytesIO(resp.content)))
@@ -94,7 +95,7 @@ class HSCSession(object):
         return images
 
     def make_rgb_image(self, ra=None, dec=None, width=2.0, height=2.0, band='irg', 
-                       stretch=5, Q=8, images=None):
+                       stretch=5, Q=8, images=None, **kwargs):
         """
         Make RGB image.
 
@@ -119,10 +120,23 @@ class HSCSession(object):
             The RGB image
         """
         if images is None:
-            images = self.fetch_hsc_cutout(ra, dec, width, height, band)
+            images = self.fetch_hsc_cutout(ra, dec, width, height, band, **kwargs)
         rgb = make_lupton_rgb(images[:, :, 0], images[:, :, 1],
                               images[:, :, 2], stretch=stretch, Q=Q)
         return rgb
+
+    def fetch_psf(self, ra, dec, band='i', rerun='s18a_wide'):
+        """
+        Fetch psf at give ra & dec
+        """
+
+        num = {'5': 's17a_wide', '6': 's18a_wide'}[rerun]
+        url = self.base_url+'psf/'+num+'/cgi/getpsf?ra={:.6f}&'
+        url += 'dec={:.6f}&filter={}&rerun={}&tract='
+        url += 'auto&patch=auto&type=coadd'
+        url = url.format(ra, dec, band, rerun)
+        resp = self.session.get(url)
+        return fits.getdata(BytesIO(resp.content))
 
 
 def fetch_galex_cutout(ra, dec, size=50, survey='AIS'):
