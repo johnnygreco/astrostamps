@@ -23,7 +23,7 @@ def fetch_sdss_cutout(ra, dec, scale=0.4, width=512, height=512, opt=''):
     """Fetch SDSS color cutout image at the given ra, dec
     ra, dec : float
         in degrees
-    scale : float
+catid    scale : float
         pixel scale in arcseconds
     width, height : integer
         image width and height in number of pixels
@@ -68,7 +68,8 @@ class HSCSession(object):
             password = getpass('Enter password: ')
         self.session.auth = (user, password)
 
-    def fetch_hsc_cutout(self, ra, dec, width=2.0, height=2.0, band='R', imageonly=True, dr=2):
+    def fetch_hsc_cutout(self, ra, dec, width=2.0, height=2.0, band='R', 
+		         imageonly=True, dr=2.1):
         """Fetch HSC cutout image at the given ra, dec
         ra, dec : float
             in degrees
@@ -82,11 +83,12 @@ class HSCSession(object):
         band = band.upper()
         images = []
         for oneband in band:
-            url = (os.path.join(self.base_url, 'das_quarry/')+"dr%s/cgi-bin/quarryImage?"
+            url = (os.path.join(self.base_url, 'das_quarry/')+\
+                   "dr%s/cgi-bin/quarryImage?"
                    "ra=%.6f&dec=%.6f&sw=%.6fasec&sh=%.6fasec"
-                   "&type=coadd&image=on&mask=on&variance=on&filter=HSC-%s&tract=&rerun=" % (
-                       dr, ra, dec, width/2.0, height/2.0, oneband))
-
+                   "&type=coadd&image=on&mask=on&variance=on&"
+                   "filter=HSC-%s&tract=&rerun=" %\
+                   (str(dr), ra, dec, width/2.0, height/2.0, oneband))
             resp = self.session.get(url)
             if resp.ok:
                 images.append(fits.open(BytesIO(resp.content)))

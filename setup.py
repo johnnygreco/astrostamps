@@ -10,7 +10,7 @@ except ImportError:
 
 setup(
     name="astrostamps",
-    version='v0.1',
+    version='0.1',
     author="Semyeong Oh & Johnny Greco",
     author_email="jgreco@astro.princeton.edu",
     packages=["astrostamps"],# "astrostamps.tests"],
